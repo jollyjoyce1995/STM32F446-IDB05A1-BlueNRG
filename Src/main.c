@@ -1,44 +1,3 @@
-/**
-******************************************************************************
-* @file    main.c 
-* @author  CL
-* @version V1.0.0
-* @date    04-July-2014
-* @brief   This sample code shows how to use the BlueNRG STM32 expansion board
-*          to exchange data between two devices.
-*          It provides also the feature for the throughput estimation.
-*          The communication is done using two STM32 Nucleo boards.
-******************************************************************************
-* @attention
-  *
-  * <h2><center>&copy; COPYRIGHT(c) 2014 STMicroelectronics</center></h2>
-  *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
-  *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
-  ******************************************************************************
-  */
-
-/* Includes ------------------------------------------------------------------*/
 #include "cube_hal.h"
 
 #include "osal.h"
@@ -49,35 +8,8 @@
 #include "bluenrg_utils.h"
 
 #include <stdio.h>
-
-/** @addtogroup X-CUBE-BLE1_Applications
- *  @{
- */
-
-/** @defgroup SampleAppThT
- *  @{
- */
-
-/** @defgroup MAIN 
- * @{
- */
-
-/** @defgroup MAIN_Private_Defines 
- * @{
- */ 
-/* Private defines -----------------------------------------------------------*/
 #define BDADDR_SIZE 6
 
-/**
- * @}
- */
-
-/* Private macros ------------------------------------------------------------*/
-
-/** @defgroup MAIN_Private_Variables
- * @{
- */ 
-/* Private variables ---------------------------------------------------------*/
 uint8_t bnrg_expansion_board = IDB04A1; /* at startup, suppose the X-NUCLEO-IDB04A1 is used */   
 
 #ifdef SERVER_ROLE
@@ -104,18 +36,7 @@ extern volatile uint8_t start_read_rx_char_handle;
 extern volatile uint8_t end_read_tx_char_handle;
 extern volatile uint8_t end_read_rx_char_handle;
 
-/**
- * @}
- */
-
-/** @defgroup MAIN_Private_Function_Prototypes
- * @{
- */ 
-/* Private function prototypes -----------------------------------------------*/
 void User_Process(void);
-/**
- * @}
- */
 
 /**
   * @brief UART MSP Initialization 
@@ -185,19 +106,6 @@ void vcom_init(void)
   }
 }
 
-/**
- * @brief  Main function to show how to use the BlueNRG STM32 expansion board 
- *         to exchange data between two STM32 Nucleo boards with their
- *         respective BlueNRG STM32 expansion boards.
- *         One board will act as Server-Peripheral and the other as 
- *         Client-Central.
- *         After connection has been established, by pressing the USER button
- *         on one board, the LD2 LED on the other one gets toggled and
- *         viceversa.
- *         The communication is done using a vendor specific profile.
- * @param  None
- * @retval None
- */
 int main(void)
 { 
   uint8_t CLIENT_BDADDR[] = {0xbb, 0x00, 0x00, 0xE1, 0x80, 0x02};
@@ -210,15 +118,6 @@ int main(void)
   
   int ret;
 	
-  /* STM32Cube HAL library initialization:
-   *  - Configure the Flash prefetch, Flash preread and Buffer caches
-   *  - Systick timer is configured by default as source of time base, but user 
-   *    can eventually implement his proper time base source (a general purpose 
-   *    timer for example or other time source), keeping in mind that Time base 
-   *    duration should be kept 1ms since PPP_TIMEOUT_VALUEs are defined and 
-   *    handled in milliseconds basis.
-   *  - Low Level Initialization
-   */
   HAL_Init();
 
   /* Configure LED2 */
@@ -244,7 +143,6 @@ int main(void)
   
   /* get the BlueNRG HW and FW versions */
   getBlueNRGVersion(&hwVersion, &fwVersion);
-
   /* 
    * Reset BlueNRG again otherwise we won't
    * be able to change its MAC address.
@@ -417,17 +315,3 @@ void Error_Handler(void)
     HAL_Delay(100);
   }
 }
-
-/**
- * @}
- */
- 
-/**
- * @}
- */
-
-/**
- * @}
- */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
