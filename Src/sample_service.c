@@ -1,42 +1,6 @@
-/**
-  ******************************************************************************
-  * @file    sample_service.c
-  * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-July-2014
-  * @brief   Add a sample service using a vendor specific profile.
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; COPYRIGHT(c) 2014 STMicroelectronics</center></h2>
-  *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
-  *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
-  ******************************************************************************
-  */
-/* Includes ------------------------------------------------------------------*/
 #include "sample_service.h"
 #include "connection_config.h"
+#include "gpio.h"
 
 /** @addtogroup X-CUBE-BLE1_Applications
  *  @{
@@ -225,9 +189,15 @@ void startReadRXCharHandle(void)
  */
 void receiveData(uint8_t* data_buffer, uint8_t Nb_bytes)
 {
-  BSP_LED_Toggle(LED2);
-
-  for(int i = 0; i < Nb_bytes; i++) {
+	char a = data_buffer[0];
+	char b = data_buffer[1];
+	if(data_buffer[0] == '1'){
+		My_Led_Toggle(GPIOC, GPIO_PIN_0);
+	}
+	if(data_buffer[1] == '1'){
+		My_Led_Toggle(GPIOC, GPIO_PIN_1);
+	}
+	for(int i = 0; i < Nb_bytes; i++) {
     PRINTF("%c", data_buffer[i]);
   }
 }
@@ -242,52 +212,7 @@ void receiveData(uint8_t* data_buffer, uint8_t Nb_bytes)
 void sendData(uint8_t* data_buffer, uint8_t Nb_bytes)
 {
   if(BLE_Role == SERVER) {
-    
-    if (throughput_test) {
-        
-      //uint8_t test_end = FALSE;
-      //uint32_t packets = 0;
-      
-      do {
-        uint8_t data[20] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F',0,0,0,0};
-        
-        static uint32_t packets = 0;
-        static tClockTime time, time2;
-        
-        HOST_TO_LE_32(data+16, packets);
-        
-        if(packets==0){
-          PRINTF("Test start\n");
-          time = Clock_Time();
-        }      
-        
-        struct timer t;
-        Timer_Set(&t, CLOCK_SECOND*10); 
-        
-        while(aci_gatt_update_char_value(sampleServHandle, TXCharHandle, 0, 20, data)==BLE_STATUS_INSUFFICIENT_RESOURCES) {
-          // Radio is busy (buffer full).
-          //PRINTF("Radio is busy (buffer full)\n");
-          if(Timer_Expired(&t)) {
-            break;
-          }
-        }
-        
-        packets++;
-        
-        if(packets != 0 && packets%NUM_PACKETS == 0){
-          time2 = Clock_Time();
-          tClockTime diff = time2-time;
-          PRINTF("%d packets. Elapsed time: %d ms. App throughput: %d kbps.\n", NUM_PACKETS, diff, (int)((float)NUM_PACKETS*20*8/diff));
-          time = Clock_Time();
-          
-          //test_end = TRUE;
-        }
-      }while(1/*!test_end*/);
-      
-    } else {
-      aci_gatt_update_char_value(sampleServHandle,TXCharHandle, 0, Nb_bytes, data_buffer);
-    }
-
+		aci_gatt_update_char_value(sampleServHandle,TXCharHandle, 0, Nb_bytes, data_buffer);
   } else {
     aci_gatt_write_without_response(connection_handle, rx_handle+1, Nb_bytes, data_buffer);
   }
@@ -374,46 +299,9 @@ void GAP_DisconnectionComplete_CB(void)
  */
 void GATT_Notification_CB(uint16_t attr_handle, uint8_t attr_len, uint8_t *attr_value)
 {
-  if (throughput_test && BLE_Role == CLIENT) {
-    static tClockTime time, time2;
-    static uint32_t packets=0;
-    static uint32_t n_packet1, n_packet2, lost_packets = 0;
-    
-    if(attr_handle == tx_handle+1){ 
-        if(packets==0){
-            PRINTF("Test start\n");
-            time = Clock_Time();
-            n_packet1 = LE_TO_HOST_32(attr_value+16) - 1;
-        }
-               
-        n_packet2 = LE_TO_HOST_32(attr_value+16);
-        if(n_packet2 != n_packet1 + 1){
-          lost_packets += n_packet2-(n_packet1+1);
-        }
-        n_packet1 = n_packet2;
-        
-        packets++;
-        //PRINTF("packet %d\n", packets);
-        
-        if(packets != 0 && packets%NUM_PACKETS == 0){
-            time2 = Clock_Time();
-            tClockTime diff = time2-time;
-            PRINTF("%d packets. Elapsed time: %d ms. App throughput: %d kbps.\n", NUM_PACKETS, diff, (int)((float)NUM_PACKETS*20*8/diff));            
-            
-            if(lost_packets){
-              PRINTF("%d lost packet(s)\n", lost_packets);
-            }
-            time = Clock_Time();
-            lost_packets=0;
-        }
-        
-    }
-  } else {
-    
-    if(attr_handle == tx_handle+1){
-      receiveData(attr_value, attr_len);
-    }
-  }
+	if(attr_handle == tx_handle+1){
+		receiveData(attr_value, attr_len);
+	}
 }
 
 /**

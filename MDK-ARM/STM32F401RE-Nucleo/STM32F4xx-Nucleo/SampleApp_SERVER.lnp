@@ -7,6 +7,7 @@
 ".\stm32f4xx-nucleo\sample_service.o"
 ".\stm32f4xx-nucleo\stm32xx_it.o"
 ".\stm32f4xx-nucleo\uart_support.o"
+".\stm32f4xx-nucleo\gpio.o"
 ".\stm32f4xx-nucleo\stm32f4xx_nucleo.o"
 ".\stm32f4xx-nucleo\stm32_bluenrg_ble.o"
 ".\stm32f4xx-nucleo\system_stm32f4xx.o"

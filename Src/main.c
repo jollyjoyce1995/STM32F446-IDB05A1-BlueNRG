@@ -6,6 +6,7 @@
 #include "debug.h"
 #include "stm32_bluenrg_ble.h"
 #include "bluenrg_utils.h"
+#include "gpio.h"
 
 #include <stdio.h>
 #define BDADDR_SIZE 6
@@ -17,12 +18,6 @@ uint8_t bnrg_expansion_board = IDB04A1; /* at startup, suppose the X-NUCLEO-IDB0
 #endif
 #ifdef CLIENT_ROLE
   BLE_RoleTypeDef BLE_Role = CLIENT;
-#endif
-
-#ifdef THROUGHPUT_TEST
-  uint8_t throughput_test = 1; /* enable the test for the estimation of the throughput */
-#else
-  uint8_t throughput_test = 0; /* disable the test for the estimation of the throughput */
 #endif
 
 UART_HandleTypeDef UartHandle;
@@ -119,13 +114,14 @@ int main(void)
   int ret;
 	
   HAL_Init();
-
-  /* Configure LED2 */
-  BSP_LED_Init(LED2);
-  
-  /* Configure the User Button in GPIO Mode */
-  BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_GPIO);
-  
+	
+	if(BLE_Role == SERVER){
+		My_Buttons_Init();
+	}
+	if(BLE_Role == CLIENT){	
+		My_Leds_Init();
+	}
+	
   /* Configure the system clock */
   SystemClock_Config();
   
@@ -179,16 +175,10 @@ int main(void)
     if (bnrg_expansion_board == IDB05A1) {
       ret = aci_gap_init_IDB05A1(GAP_PERIPHERAL_ROLE_IDB05A1, 0, 0x07, &service_handle, &dev_name_char_handle, &appearance_char_handle);
     }
-    else {
-      ret = aci_gap_init_IDB04A1(GAP_PERIPHERAL_ROLE_IDB04A1, &service_handle, &dev_name_char_handle, &appearance_char_handle);
-    }
   }
   else {
     if (bnrg_expansion_board == IDB05A1) {
       ret = aci_gap_init_IDB05A1(GAP_CENTRAL_ROLE_IDB05A1, 0, 0x07, &service_handle, &dev_name_char_handle, &appearance_char_handle);
-    }
-    else {
-      ret = aci_gap_init_IDB04A1(GAP_CENTRAL_ROLE_IDB04A1, &service_handle, &dev_name_char_handle, &appearance_char_handle);
     }
   }
   
@@ -223,11 +213,11 @@ int main(void)
   
   /* Set output power level */
   ret = aci_hal_set_tx_power_level(1,4);
-  
+	
   while(1)
   {
-    HCI_Process();
-    User_Process();
+		HCI_Process();
+		User_Process();
   }
 }
 
@@ -261,22 +251,22 @@ void User_Process(void)
     }
   }  
 
-  /* Check if the user has pushed the button */
-  if(BSP_PB_GetState(BUTTON_KEY) == RESET)
-  {
-    while (BSP_PB_GetState(BUTTON_KEY) == RESET);
-    
-    if(connected && notification_enabled){
-      /* Send a toggle command to the remote device */
-      uint8_t data[20] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J'};
-      sendData(data, sizeof(data));
-      
-      //BSP_LED_Toggle(LED2);  // toggle the LED2 locally.
-                               // If uncommented be sure BSP_LED_Init(LED2) is
-                               // called in main().
-                               // E.g. it can be enabled for debugging.
-    }
-  }
+//  /* Check if the user has pushed the button */
+//  if(BSP_PB_GetState(BUTTON_KEY) == RESET)
+//  {
+//    while (BSP_PB_GetState(BUTTON_KEY) == RESET);
+//    
+//    if(connected && notification_enabled){
+//      /* Send a toggle command to the remote device */
+//      uint8_t data[20] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J'};
+//      sendData(data, sizeof(data));
+//      
+//      //BSP_LED_Toggle(LED2);  // toggle the LED2 locally.
+//                               // If uncommented be sure BSP_LED_Init(LED2) is
+//                               // called in main().
+//                               // E.g. it can be enabled for debugging.
+//    }
+//  }
 }
 
 #ifdef USE_FULL_ASSERT
